@@ -84,7 +84,7 @@
 
 ---
 
-## BUG-08 — Erro 500 expõe página de erro interna (potencial exposição de informação)
+## BUG-05 — Erro 500 expõe página de erro interna (potencial exposição de informação)
 
 - **Severidade:** 🟡 Baixa
 - **Cenário relacionado:** `@seguranca @defeito` — "Erro de requisição inválida não deve expor stack trace/detalhes internos" (Funcionalidade 3)
@@ -99,7 +99,7 @@
 
 ---
 
-## BUG-09 — Header `Content-Type` não inclui `charset` explícito
+## BUG-06 — Header `Content-Type` não inclui `charset` explícito
 
 - **Severidade:** 🟡 Baixa
 - **Cenário relacionado:** Observação de contrato (Funcionalidade 1)
