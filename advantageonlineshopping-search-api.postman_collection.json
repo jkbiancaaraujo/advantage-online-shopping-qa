@@ -1,0 +1,753 @@
+{
+  "info": {
+    "_postman_id": "b6a4a3d0-1a2b-4c3d-9e0f-a1b2c3d4e5f6",
+    "name": "Advantage Online Shopping - Search API",
+    "description": "Coleção Postman implementando os cenários de teste descritos em advantageonlineshopping-search-api-test-scenarios.pt.md para o endpoint GET /catalog/api/v1/products/search.\n\nCada request é independente: testes que precisam comparar duas respostas (ex.: case-insensitive, parâmetros extras) buscam sua própria baseline via `pm.sendRequest` dentro do próprio test script, em vez de depender de `pm.collectionVariables` setadas por outra requisição. Qualquer request pode ser executada isoladamente, em qualquer ordem, sem falhas por dependência de execução anterior.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://www.advantageonlineshopping.com/catalog/api/v1/products/search",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Funcionalidade 1: Contrato da API - Schema e Status Codes",
+      "item": [
+        {
+          "name": "Requisicao valida retorna status 200 e Content-Type JSON",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}?name=tablet",
+              "host": ["{{baseUrl}}"],
+              "query": [{ "key": "name", "value": "tablet" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status HTTP deve ser 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Header Content-Type deve estar presente e conter application/json', () => {",
+                  "    const contentType = pm.response.headers.get('Content-Type');",
+                  "    pm.expect(contentType).to.not.be.null;",
+                  "    pm.expect(contentType).to.include('application/json');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Corpo da resposta segue o schema esperado (array de categorias)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}?name=tablet",
+              "host": ["{{baseUrl}}"],
+              "query": [{ "key": "name", "value": "tablet" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Corpo da resposta deve ser um array JSON', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Cada categoria e produto contem os campos esperados', () => {",
+                  "    const body = pm.response.json();",
+                  "    body.forEach((category) => {",
+                  "        pm.expect(category).to.have.property('categoryId').that.is.a('number');",
+                  "        pm.expect(category).to.have.property('categoryName').that.is.a('string');",
+                  "        pm.expect(category).to.have.property('categoryImageId').that.is.a('string');",
+                  "        pm.expect(category).to.have.property('products').that.is.an('array');",
+                  "        category.products.forEach((product) => {",
+                  "            pm.expect(product).to.have.property('productId').that.is.a('number');",
+                  "            pm.expect(product).to.have.property('categoryId').that.is.a('number');",
+                  "            pm.expect(product).to.have.property('productName').that.is.a('string');",
+                  "            pm.expect(product).to.have.property('price').that.is.a('number');",
+                  "            pm.expect(product).to.have.property('imageUrl').that.is.a('string');",
+                  "        });",
+                  "    });",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "O tipo de dado do campo price e numerico e nao uma string",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}?name=tablet",
+              "host": ["{{baseUrl}}"],
+              "query": [{ "key": "name", "value": "tablet" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Campo price de cada produto e number, nunca string', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const body = pm.response.json();",
+                  "    body.forEach((category) => {",
+                  "        category.products.forEach((product) => {",
+                  "            pm.expect(product.price).to.be.a('number');",
+                  "        });",
+                  "    });",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "categoryId do produto e consistente com o categoryId da categoria pai",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}?name=tablet",
+              "host": ["{{baseUrl}}"],
+              "query": [{ "key": "name", "value": "tablet" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('categoryId do produto e igual ao categoryId da categoria que o contem', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const body = pm.response.json();",
+                  "    body.forEach((category) => {",
+                  "        category.products.forEach((product) => {",
+                  "            pm.expect(product.categoryId).to.eql(category.categoryId);",
+                  "        });",
+                  "    });",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[@defeito] Busca sem resultados deve retornar um array JSON vazio",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}?name=zzzznotfound123",
+              "host": ["{{baseUrl}}"],
+              "query": [{ "key": "name", "value": "zzzznotfound123" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status HTTP deve ser 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Content-Type deve estar presente contendo application/json', () => {",
+                  "    const contentType = pm.response.headers.get('Content-Type');",
+                  "    pm.expect(contentType).to.not.be.null;",
+                  "    pm.expect(contentType).to.include('application/json');",
+                  "});",
+                  "",
+                  "pm.test('Corpo da resposta deve ser um array JSON vazio', () => {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.be.an('array').that.is.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[@defeito] Parametro obrigatorio ausente deve retornar 400",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}",
+              "host": ["{{baseUrl}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status HTTP esperado e 400 (Bad Request)', () => {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Corpo da resposta de erro deve ser JSON estruturado', () => {",
+                  "    const contentType = pm.response.headers.get('Content-Type');",
+                  "    pm.expect(contentType).to.include('application/json');",
+                  "    pm.expect(() => pm.response.json()).to.not.throw();",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[@defeito] Nome de parametro inesperado - term",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}?term=tablet",
+              "host": ["{{baseUrl}}"],
+              "query": [{ "key": "term", "value": "tablet" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Parametro name ausente deve retornar 400', () => {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Content-Type da requisicao nao deveria impactar uma requisicao GET simples",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}?name=tablet",
+              "host": ["{{baseUrl}}"],
+              "query": [{ "key": "name", "value": "tablet" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Resposta deve ser 200 mesmo sem header Content-Type na requisicao', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Funcionalidade 2: Busca de Produtos - Casos Funcionais",
+      "item": [
+        {
+          "name": "Buscar por um termo existente retorna produtos da categoria correta",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}?name=tablet",
+              "host": ["{{baseUrl}}"],
+              "query": [{ "key": "name", "value": "tablet" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status deve ser 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const body = pm.response.json();",
+                  "const tablets = body.find((c) => c.categoryName === 'TABLETS');",
+                  "",
+                  "pm.test('Resposta deve conter a categoria TABLETS', () => {",
+                  "    pm.expect(tablets).to.not.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test('Categoria TABLETS deve conter os produtos esperados', () => {",
+                  "    const names = tablets.products.map((p) => p.productName);",
+                  "    pm.expect(names).to.include('HP ElitePad 1000 G2 Tablet');",
+                  "    pm.expect(names).to.include('HP Elite x2 1011 G1 Tablet');",
+                  "    pm.expect(names).to.include('HP Pro Tablet 608 G1');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Busca por termo parcial (substring) retorna produtos correspondentes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}?name=tab",
+              "host": ["{{baseUrl}}"],
+              "query": [{ "key": "name", "value": "tab" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status deve ser 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Categoria TABLETS deve ser retornada para o termo parcial tab', () => {",
+                  "    const body = pm.response.json();",
+                  "    const names = body.map((c) => c.categoryName);",
+                  "    pm.expect(names).to.include('TABLETS');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Busca e case-insensitive - maiusculas (TABLET)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}?name=TABLET",
+              "host": ["{{baseUrl}}"],
+              "query": [{ "key": "name", "value": "TABLET" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status deve ser 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Busca e case-insensitive - minusculas (tablet) deve ser identica",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}?name=tablet",
+              "host": ["{{baseUrl}}"],
+              "query": [{ "key": "name", "value": "tablet" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status deve ser 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Resposta para TABLET e tablet devem ser identicas em conteudo', (done) => {",
+                  "    const baseUrl = pm.collectionVariables.get('baseUrl');",
+                  "    pm.sendRequest(`${baseUrl}?name=TABLET`, (err, res) => {",
+                  "        pm.expect(err).to.be.null;",
+                  "        pm.expect(res.text()).to.eql(pm.response.text());",
+                  "        done();",
+                  "    });",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Parametro name vazio retorna o catalogo completo agrupado por categoria",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}?name=",
+              "host": ["{{baseUrl}}"],
+              "query": [{ "key": "name", "value": "" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status deve ser 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Resposta deve conter multiplas categorias do catalogo', () => {",
+                  "    const body = pm.response.json();",
+                  "    const names = body.map((c) => c.categoryName);",
+                  "    pm.expect(body.length).to.be.greaterThan(1);",
+                  "    ['LAPTOPS', 'TABLETS', 'HEADPHONES', 'MICE'].forEach((expected) => {",
+                  "        pm.expect(names).to.include(expected);",
+                  "    });",
+                  "});",
+                  "",
+                  "pm.collectionVariables.set('fullCatalogBody', pm.response.text());"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Parametros extras e desconhecidos sao ignorados sem quebrar a busca",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}?name=tablet&foo=bar",
+              "host": ["{{baseUrl}}"],
+              "query": [
+                { "key": "name", "value": "tablet" },
+                { "key": "foo", "value": "bar" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status deve ser 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Resultado deve ser identico ao de uma busca apenas com name=tablet', (done) => {",
+                  "    const baseUrl = pm.collectionVariables.get('baseUrl');",
+                  "    pm.sendRequest(`${baseUrl}?name=tablet`, (err, res) => {",
+                  "        pm.expect(err).to.be.null;",
+                  "        pm.expect(res.text()).to.eql(pm.response.text());",
+                  "        done();",
+                  "    });",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Busca contendo apenas um espaco deve ser tratada como busca vazia",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}?name=%20",
+              "host": ["{{baseUrl}}"],
+              "query": [{ "key": "name", "value": "%20" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status deve ser 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Comportamento deve ser equivalente ao de uma busca com name vazio', () => {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.length).to.be.greaterThan(1);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Funcionalidade 3: Entradas Invalidas, Seguranca e Robustez",
+      "item": [
+        {
+          "name": "Headers de seguranca obrigatorios estao presentes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}?name=tablet",
+              "host": ["{{baseUrl}}"],
+              "query": [{ "key": "name", "value": "tablet" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Header X-Content-Type-Options deve ser nosniff', () => {",
+                  "    pm.expect(pm.response.headers.get('X-Content-Type-Options')).to.eql('nosniff');",
+                  "});",
+                  "",
+                  "pm.test('Header X-Frame-Options deve ser DENY', () => {",
+                  "    pm.expect(pm.response.headers.get('X-Frame-Options')).to.eql('DENY');",
+                  "});",
+                  "",
+                  "pm.test('Header Strict-Transport-Security deve estar presente', () => {",
+                  "    pm.expect(pm.response.headers.get('Strict-Transport-Security')).to.not.be.null;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[@defeito] Erro de requisicao invalida nao deve expor stack trace/detalhes internos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}",
+              "host": ["{{baseUrl}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status retornado deve ser 400', () => {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Corpo do erro nao deve conter detalhes de implementacao', () => {",
+                  "    const text = pm.response.text().toLowerCase();",
+                  "    ['exception', 'stack trace', 'tomcat', 'at java.', 'at org.'].forEach((marker) => {",
+                  "        pm.expect(text).to.not.include(marker);",
+                  "    });",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Caracteres Unicode/acentuados sao aceitos sem erro",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}?name=t\u00e2blet",
+              "host": ["{{baseUrl}}"],
+              "query": [{ "key": "name", "value": "t\u00e2blet" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status deve ser 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Aplicacao nao deve retornar erro de encoding', () => {",
+                  "    pm.expect(() => pm.response.json()).to.not.throw();",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Entrada extremamente longa nao derruba o servico",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('longString', 'a'.repeat(5000));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status deve ser 200 ou um 400/413 controlado (nunca 500)', () => {",
+                  "    pm.expect([200, 400, 413]).to.include(pm.response.code);",
+                  "});",
+                  "",
+                  "pm.test('Servico nao deve demorar excessivamente', () => {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}?name={{longString}}",
+              "host": ["{{baseUrl}}"],
+              "query": [{ "key": "name", "value": "{{longString}}" }]
+            }
+          }
+        },
+        {
+          "name": "[@naofuncional] Cache nao deve servir resultados desatualizados incorretamente",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}?name=tablet",
+              "host": ["{{baseUrl}}"],
+              "query": [{ "key": "name", "value": "tablet" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Header Cache-Control deve estar presente refletindo a politica de cache', () => {",
+                  "    pm.expect(pm.response.headers.get('Cache-Control')).to.not.be.null;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Funcionalidade 4: Verbos HTTP e Negociacao de Metodo",
+      "item": [
+        {
+          "name": "[@defeito] Metodo POST deve retornar 405 Method Not Allowed",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}?name=tablet",
+              "host": ["{{baseUrl}}"],
+              "query": [{ "key": "name", "value": "tablet" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status deve ser 405 (Method Not Allowed)', () => {",
+                  "    pm.response.to.have.status(405);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[@defeito] Metodo PUT deve retornar 405 Method Not Allowed",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}?name=tablet",
+              "host": ["{{baseUrl}}"],
+              "query": [{ "key": "name", "value": "tablet" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status deve ser 405 (Method Not Allowed)', () => {",
+                  "    pm.response.to.have.status(405);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[@defeito] Metodo DELETE deve retornar 405 Method Not Allowed",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}?name=tablet",
+              "host": ["{{baseUrl}}"],
+              "query": [{ "key": "name", "value": "tablet" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status deve ser 405 (Method Not Allowed)', () => {",
+                  "    pm.response.to.have.status(405);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
