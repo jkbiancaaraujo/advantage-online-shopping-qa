@@ -3,18 +3,6 @@
 **Site testado:** https://advantageonlineshopping.com/#/
 **Notação:** Gherkin (Português). A tag `@excecao` marca cenários negativos/casos de borda.
 
-> Notas da exploração usadas como base para estes cenários:
-> - Endpoint de busca: `#/search/?viewAll=<termo>`. Uma busca vazia retorna **todos os itens do catálogo** (394 itens observados) em vez de um erro ou estado vazio.
-> - Busca sem correspondências mostra `No results for "<termo>"` além de um link para uma demo não relacionada da SAP (redirecionamento externo — vale um cenário para confirmar que isso NÃO gera erro silencioso).
-> - O campo de quantidade na página do produto é um **campo de texto simples** (não é do tipo number): digitar `0`, um número negativo, ou letras é rejeitado/resetado pela interface ou simplesmente ignorado ao clicar em "ADD TO CART" (nenhum item é adicionado, nenhuma mensagem de erro visível) — um caso de exceção importante.
-> - Adicionar um produto abre um **toggle/dropdown de mini-carrinho** sob o ícone do carrinho no cabeçalho, mostrando nome do produto, quantidade, cor, preço, total do pedido e um botão CHECKOUT.
-> - Clicar no próprio ícone do carrinho navega para `#/shoppingCart` (página completa), que mostra as colunas `PRODUCT NAME | COLOR | QUANTITY | PRICE`, ações `EDIT | REMOVE` por linha, `PAYMENT OPTIONS:` (ícones MasterCredit, SafePay), `TOTAL`, e botão `CHECKOUT`.
-> - Remover o último item mostra **"Your shopping cart is empty"** com um link `CONTINUE SHOPPING`, tanto na página do carrinho quanto ao clicar no ícone do carrinho depois.
-> - O Checkout (`#/login`), quando o usuário **não está logado**, mostra duas opções lado a lado: "Already have an account?" (formulário de Login com Usuário/Senha, botão LOGIN desabilitado até os campos serem preenchidos, link "Forgot your password?") e "New user?" (botão REGISTRATION) — não foi encontrada opção de checkout como convidado (guest checkout). Um painel de Resumo do Pedido é exibido ao lado com produto(s), quantidade, cor, preço, frete e total.
-> - Drodpdown de busca não desaparece após resultado.
-> - Carrinho e pagina de checkout só exibe o total dos produtos e nenhuma especificação por preço unitario.
-> - Credenciais de login inválidas mostram a mensagem: `Incorrect user name or password.`
-
 ---
 
 ## Funcionalidade 1: Busca de Produtos
@@ -309,7 +297,14 @@ Funcionalidade: Validação do carrinho de compras e checkout (tela de pagamento
 | Inclusão no Carrinho (inclui ícone/toggle) | Quantidade padrão, quantidade customizada, seleção de cor, inclusão repetida, indicador do ícone, resumo no toggle, navegação toggle→checkout, navegação ícone→página completa do carrinho | Quantidade = 0, quantidade negativa, quantidade não numérica, decremento abaixo de 1, cor não selecionada, indicador removido após esvaziar o carrinho, mensagem de vazio ao clicar no ícone |
 | Validação do Carrinho / Checkout | Nome/cor/quantidade/preço corretos, edição, remoção, resumo do pedido, opções de pagamento | Carrinho esvaziado, login exigido quando deslogado, botão LOGIN desabilitado, credenciais inválidas, checkout com carrinho vazio |
 
-
-
-teste_qa
-Testeqa1 
+> Observações:
+> - Endpoint de busca: `#/search/?viewAll=<termo>`. Uma busca vazia retorna **todos os itens do catálogo** (394 itens observados) em vez de um erro ou estado vazio.
+> - Busca sem correspondências mostra `No results for "<termo>"` além de um link para uma demo não relacionada da SAP (redirecionamento externo — vale um cenário para confirmar que isso NÃO gera erro silencioso).
+> - O campo de quantidade na página do produto é um **campo de texto simples** (não é do tipo number): digitar `0`, um número negativo, ou letras é rejeitado/resetado pela interface ou simplesmente ignorado ao clicar em "ADD TO CART" (nenhum item é adicionado, nenhuma mensagem de erro visível) — um caso de exceção importante.
+> - Adicionar um produto abre um **toggle/dropdown de mini-carrinho** sob o ícone do carrinho no cabeçalho, mostrando nome do produto, quantidade, cor, preço, total do pedido e um botão CHECKOUT.
+> - Clicar no próprio ícone do carrinho navega para `#/shoppingCart` (página completa), que mostra as colunas `PRODUCT NAME | COLOR | QUANTITY | PRICE`, ações `EDIT | REMOVE` por linha, `PAYMENT OPTIONS:` (ícones MasterCredit, SafePay), `TOTAL`, e botão `CHECKOUT`.
+> - Remover o último item mostra **"Your shopping cart is empty"** com um link `CONTINUE SHOPPING`, tanto na página do carrinho quanto ao clicar no ícone do carrinho depois.
+> - O Checkout (`#/login`), quando o usuário **não está logado**, mostra duas opções lado a lado: "Already have an account?" (formulário de Login com Usuário/Senha, botão LOGIN desabilitado até os campos serem preenchidos, link "Forgot your password?") e "New user?" (botão REGISTRATION) — não foi encontrada opção de checkout como convidado (guest checkout). Um painel de Resumo do Pedido é exibido ao lado com produto(s), quantidade, cor, preço, frete e total.
+> - Drodpdown de busca não desaparece após resultado.
+> - Carrinho e pagina de checkout só exibe o total dos produtos e nenhuma especificação por preço unitario.
+> - Credenciais de login inválidas mostram a mensagem: `Incorrect user name or password.`
