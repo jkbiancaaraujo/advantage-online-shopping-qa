@@ -22,7 +22,7 @@
 ## BUG-01 — Parâmetro obrigatório ausente retorna 500 em vez de 400
 
 - **Severidade:** 🔴 Alta
-- **Cenário relacionado:** `@contrato @defeito` — "Parâmetro obrigatório ausente deve retornar 400" (Funcionalidade 1)
+- **Cenário relacionado:** `@contrato @defeito` — "Ausência do parâmetro obrigatório retorna erro estruturado" (Funcionalidade 1)
 - **Passos para reproduzir:**
   ```
   curl -i "https://www.advantageonlineshopping.com/catalog/api/v1/products/search"
@@ -37,7 +37,7 @@
 ## BUG-02 — Nome de parâmetro incorreto também gera 500
 
 - **Severidade:** 🔴 Alta
-- **Cenário relacionado:** `@contrato @defeito` — "Nome de parâmetro inesperado deve retornar 400" (Funcionalidade 1)
+- **Cenário relacionado:** `@contrato @defeito` — "Parâmetro com nome incorreto é tratado como ausência do parâmetro obrigatório" (Funcionalidade 1)
 - **Passos para reproduzir:**
   ```
   curl -i "https://www.advantageonlineshopping.com/catalog/api/v1/products/search?query=tablet"
@@ -55,7 +55,7 @@
 ## BUG-03 — Resposta sem resultados retorna corpo vazio em vez de `[]`
 
 - **Severidade:** 🔴 Alta
-- **Cenário relacionado:** `@contrato @defeito` — "Busca sem resultados deve retornar um array JSON vazio" (Funcionalidade 1)
+- **Cenário relacionado:** `@contrato @defeito` — "Busca sem resultados retorna resposta vazia e não um erro" (Funcionalidade 1)
 - **Passos para reproduzir:**
   ```
   curl -i -G --data-urlencode "name=zzzznotfound123" "https://www.advantageonlineshopping.com/catalog/api/v1/products/search"
@@ -87,7 +87,7 @@
 ## BUG-05 — Erro 500 expõe página de erro interna (potencial exposição de informação)
 
 - **Severidade:** 🟡 Baixa
-- **Cenário relacionado:** `@seguranca @defeito` — "Erro de requisição inválida não deve expor stack trace/detalhes internos" (Funcionalidade 3)
+- **Cenário relacionado:** `@seguranca @defeito` — "Erros não expõem detalhes internos da implementação" (Funcionalidade 3)
 - **Passos para reproduzir:**
   ```
   curl -i "https://www.advantageonlineshopping.com/catalog/api/v1/products/search"
@@ -120,8 +120,8 @@
 |---|---|---|---|
 | ✅ 1 | Proteção contra SQL Injection | `name=' OR '1'='1` não retorna dados indevidos nem expõe erros de banco de dados. | Teste exploratório, sem cenário formal correspondente |
 | ✅ 2 | Proteção contra XSS refletido | `name=<script>alert(1)</script>` não é ecoado na resposta. | Teste exploratório, sem cenário formal correspondente |
-| ✅ 3 | Headers de segurança presentes | `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Strict-Transport-Security` presentes em todas as respostas testadas. | "Headers de segurança obrigatórios estão presentes" (Funcionalidade 3) |
-| ✅ 4 | Busca case-insensitive | `TABLET` e `tablet` retornam resultados idênticos. | "Busca é case-insensitive" (Funcionalidade 2) |
-| ✅ 5 | Aceita Unicode/acentuação e entradas muito longas sem falhar | Nenhum erro 500 nesses casos. | "Caracteres Unicode/acentuados são aceitos sem erro" / "Entrada extremamente longa não derruba o serviço" (Funcionalidade 3) |
+| ✅ 3 | Headers de segurança presentes | `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Strict-Transport-Security` presentes em todas as respostas testadas. | "Respostas incluem os headers de segurança obrigatórios" (Funcionalidade 3) |
+| ✅ 4 | Busca case-insensitive | `TABLET` e `tablet` retornam resultados idênticos. | "Busca funciona por termo parcial e é insensível a maiúsculas e minúsculas" (Funcionalidade 2) |
+| ✅ 5 | Aceita Unicode/acentuação e entradas muito longas sem falhar | Nenhum erro 500 nesses casos. | "Caracteres Unicode são aceitos sem erro de encoding" / "Entrada extremamente longa não derruba o serviço" (Funcionalidade 3) |
 
 ---
