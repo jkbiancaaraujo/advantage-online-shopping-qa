@@ -39,35 +39,35 @@ Funcionalidade: Contrato da API de busca de produtos
   Para que integrações não quebrem com mudanças inesperadas de schema, status ou headers
 
   Contexto:
-    Dado que o endpoint base é "GET /catalog/api/v1/products/search"
+    Dado que consumo o serviço de busca de produtos
 
   @contrato
   Cenário: Busca válida retorna resposta estruturada e pronta para consumo pela aplicação cliente
-    Quando eu envio uma requisição GET com o parâmetro "name=tablet"
+    Quando eu busco pelo termo "tablet"
     Então o status HTTP deve ser 200 com "Content-Type: application/json"
     E a resposta deve ser um array de categorias, cada uma contendo seus produtos com identificação, nome e preço
 
   @contrato
   Cenário: Campos numéricos da resposta têm o tipo correto
-    Quando eu envio uma requisição GET com o parâmetro "name=tablet"
+    Quando eu busco pelo termo "tablet"
     Então o campo "price" de cada produto deve ser um número e não uma string
     E o "categoryId" de cada produto deve ser consistente com o da categoria que o contém
 
   @contrato @defeito
   Cenário: Busca sem resultados retorna resposta vazia e não um erro
-    Quando eu envio uma requisição GET com o parâmetro "name=zzzznotfound123"
+    Quando eu busco por um termo sem correspondência
     Então o status HTTP deve ser 200
     E o corpo da resposta deve ser um array JSON vazio
 
   @contrato @defeito
   Cenário: Ausência do parâmetro obrigatório retorna erro estruturado
-    Quando eu envio uma requisição GET sem o parâmetro "name"
+    Quando eu envio uma busca sem informar o termo obrigatório
     Então o status HTTP deve ser 400 com uma mensagem de erro que identifica o parâmetro ausente
 
   @contrato @defeito
   Cenário: Parâmetro com nome incorreto é tratado como ausência do parâmetro obrigatório
-    Quando eu envio uma requisição GET usando "query", "term" ou outro nome de parâmetro em vez de "name"
-    Então o servidor deve retornar 400 indicando que o parâmetro "name" é esperado
+    Quando eu envio uma busca usando um nome de parâmetro diferente do esperado
+    Então o servidor deve retornar 400 indicando que o parâmetro obrigatório é esperado
 
 ```
 
@@ -83,7 +83,7 @@ Funcionalidade: Busca funcional de produtos via API
 
   @funcional
   Cenário: Busca por termo existente retorna produtos agrupados na categoria correta
-    Quando eu envio "GET /catalog/api/v1/products/search?name=tablet"
+    Quando eu busco pelo termo "tablet"
     Então o status deve ser 200
     E a resposta deve conter a categoria "TABLETS" com os produtos correspondentes e preços corretos
 
@@ -95,19 +95,19 @@ Funcionalidade: Busca funcional de produtos via API
 
   @funcional
   Cenário: Busca com parâmetro vazio retorna o catálogo completo agrupado por categoria
-    Quando eu envio "GET /catalog/api/v1/products/search?name="
+    Quando eu envio uma busca sem informar um termo
     Então o status deve ser 200
     E a resposta deve conter todas as categorias do catálogo com seus respectivos produtos
 
   @funcional
   Cenário: Parâmetros extras são ignorados sem afetar o resultado
-    Quando eu envio "GET /catalog/api/v1/products/search?name=tablet&foo=bar"
-    Então o resultado deve ser idêntico ao de uma busca apenas com "name=tablet"
+    Quando eu busco pelo termo "tablet" incluindo parâmetros extras não reconhecidos
+    Então o resultado deve ser idêntico ao de uma busca apenas pelo termo "tablet"
 
   @excecao
   Cenário: Busca contendo apenas espaço é tratada como busca vazia
-    Quando eu envio "GET /catalog/api/v1/products/search?name=%20"
-    Então o comportamento deve ser equivalente ao de uma busca com "name" vazio
+    Quando eu busco informando apenas um espaço
+    Então o comportamento deve ser equivalente ao de uma busca sem termo
 ```
 
 ---
@@ -122,23 +122,23 @@ Funcionalidade: Robustez e segurança do endpoint de busca
 
   @seguranca
   Cenário: Respostas incluem os headers de segurança obrigatórios
-    Quando eu envio qualquer requisição válida ao endpoint
+    Quando eu realizo qualquer busca válida
     Então a resposta deve conter os headers "X-Content-Type-Options", "X-Frame-Options" e "Strict-Transport-Security"
 
   @seguranca @defeito
   Cenário: Erros não expõem detalhes internos da implementação
-    Quando eu envio uma requisição sem o parâmetro obrigatório "name"
+    Quando eu envio uma busca sem informar o termo obrigatório
     Então o status deve ser 400
     E o corpo da resposta não deve conter stack traces, nomes de classes internas ou versão do servidor
 
   @excecao
   Cenário: Caracteres Unicode são aceitos sem erro de encoding
-    Quando eu envio "GET /catalog/api/v1/products/search?name=tâblet"
+    Quando eu busco por um termo com caracteres acentuados (ex.: "tâblet")
     Então o status deve ser 200 e a aplicação não deve retornar erro de encoding
 
   @excecao
   Cenário: Entrada extremamente longa não derruba o serviço
-    Quando eu envio uma busca com um valor de "name" de 5000 caracteres
+    Quando eu busco por um termo com 5000 caracteres
     Então o serviço deve responder com 200, 400 ou 413 de forma controlada, sem retornar 500 nem travar
 
   @naofuncional
@@ -160,7 +160,7 @@ Funcionalidade: Suporte e restrição correta de verbos HTTP
 
   @contrato @defeito
   Esquema do Cenário: Métodos de escrita não suportados devem retornar 405 Method Not Allowed
-    Quando eu envio "<metodo> /catalog/api/v1/products/search?name=tablet"
+    Quando eu tento realizar uma busca usando o método "<metodo>"
     Então o status deve ser 405 (Method Not Allowed)
 
     Exemplos:
