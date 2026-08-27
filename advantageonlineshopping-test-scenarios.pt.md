@@ -10,51 +10,54 @@
 ```gherkin
 Funcionalidade: Busca de produtos
   Como um comprador
-  Eu quero buscar produtos
-  Para que eu possa encontrar rapidamente os itens que desejo comprar
+  Eu quero buscar produtos pelo nome
+  Para encontrar rapidamente os itens que desejo comprar
 
   Contexto:
     Dado que estou na página inicial da Advantage Online Shopping
 
-  Cenário: Buscar por um produto existente retorna resultados correspondentes
+  Cenário: Busca por produto existente retorna apenas resultados relevantes
     Quando eu busco por "tablet"
-    Então o cabeçalho do resultado da busca deve exibir "Search result: "tablet"
-    E a quantidade de resultados deve ser maior que 0
-    E todo item do resultado deve estar relacionado ao termo "tablet"
-    E as opções de filtro "CATEGORIES", "PRICE" e "COLOR" devem ser exibidas
+    Então somente produtos relacionados ao termo buscado devem ser exibidos
+    E as opções de filtragem por categoria, preço e cor devem estar disponíveis
 
-  Cenário: Item do resultado da busca navega para a página correta do produto
-    Quando eu busco por "tablet"
-    E eu clico no primeiro resultado
-    Então eu devo ser direcionado para a página de detalhes daquele produto
-    E o nome, preço, descrição, opções de cor e campo de quantidade do produto devem ser exibidos
+  Cenário: Resultado da busca redireciona para a página de compra do produto
+    Quando eu busco por "tablet" e acesso um dos resultados
+    Então eu devo estar na página do produto com todas as informações necessárias para realizar a compra
+
+  Cenário: Busca é insensível a maiúsculas e minúsculas
+    Quando eu busco por "TABLET"
+    Então eu devo obter os mesmos resultados de uma busca por "tablet"
+
+  Cenário: Busca por termo parcial retorna produtos correspondentes
+    Quando eu busco por "tab"
+    Então produtos cujo nome contém "tablet" devem ser incluídos nos resultados
+
+  Cenário: Filtrar por categoria restringe os resultados ao segmento selecionado
+    Dado que realizei uma busca por "tablet" e vejo resultados de múltiplas categorias
+    Quando eu aplico o filtro de categoria "TABLETS"
+    Então somente produtos da categoria "TABLETS" devem permanecer visíveis
+
+  Cenário: Filtrar por faixa de preço exibe apenas produtos dentro do intervalo escolhido
+    Dado que realizei uma busca por "tablet"
+    Quando eu aplico um filtro de preço com valores mínimo e máximo definidos
+    Então somente produtos dentro dessa faixa de preço devem ser exibidos
 
   @excecao
-  Cenário: Buscar por um produto inexistente exibe mensagem de nenhum resultado
+  Cenário: Busca por produto inexistente informa o comprador sem quebrar a experiência
     Quando eu busco por "zzzznotfound123"
-    Então eu devo ver a mensagem "No results for \"zzzznotfound123\""
-    E nenhuma lista de produtos deve ser exibida
-    E um link de sugestão alternativa "SAP Fiori Demo App" deve ser exibido sem causar erro na página
+    Então eu devo ver a mensagem de que não há resultados para o termo buscado
+    E a página deve permanecer funcional
 
   @excecao
-  Cenário: Busca vazia é enviada e retorna todo o catálogo
-    Dado que o campo de busca está vazio
-    Quando eu envio a busca
-    Então eu não devo ver um erro de validação
-    E o cabeçalho do resultado da busca deve exibir um termo de busca vazio
-    E todos os itens do catálogo devem ser listados
+  Cenário: Busca vazia ou com apenas espaços retorna o catálogo completo
+    Quando eu envio uma busca sem informar um termo
+    Então todos os produtos do catálogo devem ser listados sem mensagem de erro
 
   @excecao
-  Cenário: Busca contendo apenas espaços em branco se comporta como uma busca vazia
-    Quando eu busco por "   "
-    Então eu não devo ver um erro de validação
-    E o resultado deve ser tratado da mesma forma que uma busca vazia
-
-  @excecao
-  Esquema do Cenário: Busca com caracteres especiais não quebra a página
+  Esquema do Cenário: Entradas maliciosas ou inesperadas não quebram a experiência de busca
     Quando eu busco por "<termo>"
-    Então a página deve renderizar sem erro de JavaScript
-    E eu devo ver resultados correspondentes ou a mensagem "No results for \"<termo>\""
+    Então a página deve continuar funcional e exibir resultados relevantes ou a mensagem de nenhum resultado
 
     Exemplos:
       | termo       |
@@ -64,44 +67,10 @@ Funcionalidade: Busca de produtos
       | !!!         |
       | ../../etc   |
 
-  Cenário: O termo de busca não diferencia maiúsculas de minúsculas
-    Quando eu busco por "TABLET"
-    Então os resultados devem ser os mesmos que ao buscar por "tablet"
-
-  Cenário: A busca corresponde a palavras-chave parciais
-    Quando eu busco por "tab"
-    Então resultados contendo "tablet" no nome devem ser incluídos
-
   @excecao
-  Cenário: Busca por um termo de um único caractere/curto
+  Cenário: Busca por termo muito curto responde de forma adequada sem erros
     Quando eu busco por "a"
-    Então a página deve retornar um conjunto amplo de resultados ou a mensagem "No results"
-    E a página não deve apresentar erro ou travar
-
-  Cenário: Filtrar resultados de busca por categoria reduz o conjunto de resultados
-    Dado que busquei por "tablet" e vejo 3 itens
-    Quando eu marco o filtro de categoria "TABLETS"
-    Então somente os itens pertencentes à categoria "TABLETS" devem permanecer visíveis
-
-  Cenário: Filtrar resultados de busca por faixa de preço reduz o conjunto de resultados
-    Dado que busquei por "tablet"
-    Quando eu filtro por uma faixa de preço dentro dos valores mínimo/máximo exibidos
-    Então somente itens dentro dessa faixa de preço devem permanecer visíveis
-
-  Cenário: Todo resultado retornado deve ser genuinamente relevante ao termo buscado
-    Quando eu busco por uma palavra-chave válida de produto, por exemplo "tablet"
-    Então todo item na lista de resultados deve ser um produto que um usuário buscando por essa palavra-chave esperaria encontrar
-    E nenhum item não relacionado a "tablet" deve estar presente nos resultados
-
-  Cenário: Os resultados da busca não devem incluir itens que apenas contêm o termo como substring por coincidência
-    Quando eu busco por uma palavra-chave que também é substring do nome de uma categoria de produto não relacionada
-    Então os resultados devem incluir somente itens verdadeiramente relevantes à minha intenção de busca
-    E itens não devem ser incluídos quando não possuem palavras relacionadas
-
-  Cenário: A contagem de resultados corresponde ao número de itens genuinamente relevantes
-    Quando eu busco por "tablet"
-    Então a contagem de itens exibida (ex.: "3 ITEMS") deve ser igual ao número de resultados realmente relevantes para "tablet"
-    E não deve incluir itens não relacionados inflando a contagem
+    Então a página deve exibir resultados ou a mensagem de nenhum resultado sem apresentar erros
 ```
 
 ---
@@ -111,94 +80,50 @@ Funcionalidade: Busca de produtos
 ```gherkin
 Funcionalidade: Inclusão de produto no carrinho de compras
   Como um comprador
-  Eu quero adicionar produtos ao meu carrinho com uma cor e quantidade escolhidas
-  Para que eu possa comprar os itens que desejo e acompanhar o estado do carrinho pelo ícone/toggle no cabeçalho
+  Eu quero adicionar produtos ao carrinho com cor e quantidade escolhidas
+  Para que meu pedido reflita exatamente o que desejo comprar
 
   Contexto:
     Dado que estou na página de detalhes de um produto (ex.: "HP ElitePad 1000 G2 Tablet")
 
-  Cenário: Adicionar um produto ao carrinho com a quantidade padrão
-    Dado que o campo de quantidade exibe o valor padrão "1"
-    E meu carrinho de compras está vazio
-    Quando eu clico em "ADD TO CART"
-    Então o carrinho deve conter o item com "QTY: 1"
-    E o ícone do carrinho deve exibir um indicador com o valor "1"
-    E um toggle de resumo do carrinho deve aparecer mostrando o nome do produto, "QTY: 1", cor selecionada e preço
-    E o toggle deve exibir o "TOTAL" do pedido e um botão "CHECKOUT"
-
-  Cenário: Adicionar um produto com uma seleção específica de cor
-    Quando eu seleciono a cor "GRAY"
-    E eu clico em "ADD TO CART"
-    Então o carrinho deve conter o item com a cor "GRAY"
-
-  Cenário: Adicionar um produto com quantidade aumentada
-    Quando eu aumento a quantidade para "3" usando o controle "+" do stepper
-    E eu clico em "ADD TO CART"
-    Então o carrinho deve conter "QTY: 3" para aquele produto
-    E o preço do item exibido deve refletir corretamente a quantidade conforme o comportamento do site
+  Cenário: Produto adicionado ao carrinho reflete as escolhas do comprador
+    Quando eu seleciono uma cor e defino a quantidade desejada e adiciono o produto ao carrinho
+    Então o carrinho deve exibir o produto com a cor e quantidade escolhidas
+    E o total do pedido deve corresponder ao preço conforme a quantidade selecionada
+    E o mini-resumo do carrinho deve ser exibido com a opção de avançar para o checkout
 
   Cenário: Adicionar o mesmo produto duas vezes acumula a quantidade no carrinho
-    Dado que já adicionei 1 unidade do produto ao carrinho
-    Quando eu adiciono mais 1 unidade do mesmo produto e cor ao carrinho
-    Então o carrinho deve exibir um único item de linha com quantidade "2"
+    Dado que o produto já está no carrinho com quantidade "1"
+    Quando eu adiciono mais uma unidade do mesmo produto e cor
+    Então o carrinho deve exibir uma única linha com quantidade "2"
+
+  Cenário: O indicador do carrinho no cabeçalho reflete o total de itens em tempo real
+    Dado que o carrinho está vazio
+    Quando eu adiciono produtos com quantidades distintas ao carrinho
+    Então o indicador do carrinho no cabeçalho deve exibir a soma total das quantidades
+
+  Cenário: O ícone do carrinho leva à página completa de gerenciamento do pedido
+    Dado que o carrinho contém pelo menos um item
+    Quando eu clico no ícone do carrinho
+    Então eu devo ver todos os produtos adicionados com opções para editar ou remover cada item
 
   @excecao
-  Cenário: Tentativa de adicionar um produto com quantidade zero
-    Quando eu limpo o campo de quantidade e digito "0"
-    E eu clico em "ADD TO CART"
-    Então o item adicionado ao carrinho deve ter uma quantidade mínima de "1"
-    Ou a ação "ADD TO CART" deve ser bloqueada com uma mensagem de validação
-    E o carrinho nunca deve conter um item de linha com quantidade "0"
+  Cenário: Quantidade inválida não é adicionada ao carrinho
+    Quando eu tento adicionar um produto informando uma quantidade zero, negativa ou não numérica
+    Então o carrinho não deve ser atualizado com uma quantidade inválida
+    E a interface deve preservar um estado consistente
 
   @excecao
-  Cenário: Tentativa de adicionar um produto com quantidade negativa
-    Quando eu limpo o campo de quantidade e digito "-5"
-    Então o campo de quantidade deve rejeitar o valor negativo e manter/restaurar um valor positivo válido
-    E clicar em "ADD TO CART" não deve adicionar ao carrinho um item com quantidade negativa
-
-  @excecao - Bug
-  Cenário: Tentativa de adicionar um produto com quantidade não numérica
-    Quando eu limpo o campo de quantidade e digito "abc"
-    E eu clico em "ADD TO CART"
-    Então a contagem de itens do carrinho deve permanecer inalterada
-    E nenhum item novo deve ser adicionado ao carrinho
-    E idealmente uma mensagem de validação deve informar ao usuário que a quantidade deve ser numérica
+  Cenário: Remover o único item do carrinho exibe o estado de vazio
+    Dado que o carrinho contém apenas um produto
+    Quando eu removo esse produto
+    Então o carrinho deve exibir a mensagem de vazio e o indicador no cabeçalho não deve mais exibir contagem
 
   @excecao
-  Cenário: Diminuir a quantidade abaixo de um usando o controle "-" do stepper
-    Dado que o campo de quantidade exibe "1"
-    Quando eu clico no controle "-" do stepper
-    Então a quantidade não deve ficar abaixo de "1"
-
-  Cenário: O indicador do ícone do carrinho corresponde à soma de todas as quantidades de itens
-    Dado que adicionei o produto A com quantidade "2"
-    Quando eu adiciono o produto B com quantidade "1"
-    Então o indicador do ícone do carrinho deve atualizar em tempo real e exibir "3"
-
-  Cenário: O mini-toggle do carrinho permite navegar diretamente para o checkout
-    Dado que o toggle de resumo do carrinho está visível após adicionar um produto
-    Quando eu clico em "CHECKOUT" dentro do toggle
-    Então eu devo ser direcionado para a página de pagamento do pedido / login
-
-  Cenário: Clicar no ícone do carrinho abre a página completa do carrinho de compras
-    Dado que meu carrinho tem pelo menos um item
-    Quando eu clico no ícone do carrinho de compras
-    Então eu devo ser direcionado para "#/shoppingCart"
-    E todos os itens do carrinho devem estar listados com as ações "EDIT" e "REMOVE"
-
-  @excecao
-  Cenário: O ícone do carrinho reflete a remoção de itens imediatamente
-    Dado que meu carrinho tem "1" item
-    Quando eu removo esse item na página do carrinho de compras
-    Então o indicador do ícone do carrinho não deve mais exibir uma contagem
-
-  @excecao
-  Cenário: Clicar no ícone do carrinho com o carrinho vazio exibe a mensagem de carrinho vazio
-    Dado que meu carrinho de compras está vazio
-    Quando eu clico no ícone do carrinho de compras
-    Então eu devo ser direcionado para a página do carrinho de compras
-    E eu devo ver a mensagem "Your shopping cart is empty"
-    E eu devo ver um link "CONTINUE SHOPPING" que me retorna à página inicial
+  Cenário: Acessar o carrinho vazio orienta o comprador a continuar navegando
+    Dado que o carrinho está vazio
+    Quando eu acesso a página do carrinho
+    Então eu devo ver a mensagem "Your shopping cart is empty"
 ```
 
 ---
@@ -208,83 +133,65 @@ Funcionalidade: Inclusão de produto no carrinho de compras
 ```gherkin
 Funcionalidade: Validação do carrinho de compras e checkout (tela de pagamento)
   Como um comprador
-  Eu quero que o carrinho e a tela de checkout reflitam com precisão meu pedido
-  Para que eu possa confiar no site antes de pagar
+  Eu quero que o carrinho e o checkout reflitam meu pedido com precisão
+  Para confiar nas informações antes de finalizar a compra
 
   Contexto:
     Dado que adicionei pelo menos um produto ao meu carrinho de compras
 
-  Cenário: A página do carrinho exibe os detalhes corretos do produto
-    Quando eu abro a página do carrinho de compras
-    Então cada item de linha deve exibir o nome correto do produto
-    E cada item de linha deve exibir a cor selecionada correta
-    E cada item de linha deve exibir a quantidade correta
-    E cada item de linha deve exibir o preço unitário/da linha correto
-    E o "TOTAL" deve ser igual à soma dos preços de todos os itens de linha
+  Cenário: A página do carrinho exibe o pedido com precisão
+    Quando eu acesso a página do carrinho
+    Então cada produto deve estar listado com a cor, quantidade e preço escolhidos
+    E o total deve corresponder à soma de todos os itens
+    E as opções de pagamento disponíveis devem ser exibidas
 
-  Cenário: As opções de pagamento disponíveis são exibidas na página do carrinho
-    Quando eu abro a página do carrinho de compras
-    Então a seção "PAYMENT OPTIONS:" deve exibir os ícones dos métodos de pagamento suportados (ex.: MasterCredit, SafePay)
+  Cenário: O comprador pode corrigir itens do pedido diretamente pelo carrinho
+    Dado que um produto está listado no carrinho
+    Quando eu edito esse produto
+    Então eu devo poder alterar cor ou quantidade e ver o carrinho atualizado com os novos valores
 
-  Cenário: Editar um produto a partir do carrinho
-    Dado que um produto está listado no carrinho de compras
-    Quando eu clico em "EDIT" naquele item de linha
-    Então eu devo ser direcionado para a página do produto pré-preenchida com a cor e quantidade atuais
-    E eu devo conseguir alterar a quantidade e/ou cor e atualizar o carrinho de acordo
-
-  Cenário: Remover um produto do carrinho
-    Dado que pelo menos um produto está listado no carrinho de compras
-    Quando eu clico em "REMOVE" naquele item de linha
-    Então o item não deve mais aparecer no carrinho
-    E o "TOTAL" deve ser recalculado excluindo aquele item
-    E a contagem do indicador do ícone do carrinho deve diminuir de acordo
+  Cenário: Remover um produto atualiza o pedido corretamente
+    Quando eu removo um produto do carrinho
+    Então esse item não deve mais constar no pedido e o total deve ser recalculado
 
   @excecao
-  Cenário: Remover todos os produtos esvazia o carrinho
-    Dado que existe exatamente um produto no carrinho de compras
-    Quando eu removo esse produto
-    Então a página do carrinho deve exibir "Your shopping cart is empty"
-    E um link "CONTINUE SHOPPING" deve ser exibido
-    E o indicador do ícone do carrinho não deve mais exibir uma contagem
+  Cenário: Remover todos os produtos encerra o pedido em andamento
+    Dado que o carrinho contém exatamente um produto
+    Quando eu o removo
+    Então o carrinho deve exibir o estado de vazio com opção de continuar comprando
 
-  Cenário: Checkout com usuário deslogado exibe opções de login e cadastro
-    Dado que eu não estou logado
+  Cenário: Comprador não logado é orientado a fazer login ou cadastro no checkout
+    Dado que não estou logado
     E meu carrinho contém pelo menos um item
-    Quando eu clico em "CHECKOUT"
-    Então eu devo ser direcionado para a página de pagamento do pedido
-    E eu devo ver "Already have an account?" com campos de Usuário e Senha e um botão "LOGIN"
-    E eu devo ver um link "Forgot your password?"
-    E eu devo ver "New user?" com um botão "REGISTRATION"
-    E o painel de Resumo do Pedido deve listar o(s) produto(s) correto(s), quantidade, cor e total
+    Quando eu prossigo para o checkout
+    Então eu devo ser apresentado às opções de login e cadastro
+    E o resumo do pedido deve permanecer visível com os produtos, quantidades e total corretos
 
   @excecao
-  Cenário: Login no checkout com credenciais inválidas exibe um erro e mantém conteudo do carrinho
-    Dado que estou na página de pagamento do pedido / login
-    Quando eu insiro um usuário e senha inválidos
-    E eu clico em "LOGIN"
-    Então eu devo ver a mensagem "Incorrect user name or password."
-    E eu devo permanecer na página de login
+  Cenário: Credenciais inválidas no checkout não perdem o pedido do comprador
+    Dado que estou na etapa de login do checkout
+    Quando eu tento autenticar com credenciais inválidas
+    Então eu devo ver uma mensagem de erro de autenticação
     E o conteúdo do meu carrinho deve ser preservado
 
-  Cenário: Checkout com usuário logado segue para os detalhes de pagamento
-    Dado que estou logado com uma conta registrada válida
+  Cenário: Comprador logado acessa diretamente os detalhes de pagamento
+    Dado que estou logado
     E meu carrinho contém pelo menos um item
-    Quando eu clico em "CHECKOUT"
-    Então eu devo ser levado diretamente aos detalhes de pagamento do pedido (sem solicitação de login/cadastro)
-    E o Resumo do Pedido deve exibir o(s) produto(s) correto(s), cor, quantidade e total
-
-  Cenário: O resumo do pedido reflete múltiplos itens corretamente
-    Dado que adicionei 2 produtos diferentes com quantidades diferentes ao meu carrinho
     Quando eu prossigo para o checkout
-    Então o Resumo do Pedido deve listar ambos os produtos com sua cor, quantidade e preço corretos
-    E o total deve ser igual à soma de ambos os itens de linha (mais frete, se aplicável)
+    Então eu devo ser direcionado aos detalhes de pagamento sem etapa de login
+    E o resumo do pedido deve listar os itens corretos com o total calculado
+
+  Cenário: Pedido com múltiplos itens é resumido corretamente no checkout
+    Dado que adicionei dois produtos com quantidades distintas
+    Quando eu prossigo para o checkout
+    Então o resumo deve exibir ambos os produtos com seus respectivos preços e o total correto
 
   @excecao
-  Cenário: Tentativa de checkout com carrinho vazio
-    Dado que meu carrinho de compras está vazio
-    Quando eu tento navegar diretamente para a página de checkout/pagamento
-    Então eu não devo ver um resumo de pedido válido com itens
-    E eu devo ser redirecionado para a página de carrinho vazio, impedido de prosseguir para o pagamento
+  Cenário: Acessar o checkout com carrinho vazio impede a continuação da compra
+    Dado que o carrinho está vazio
+    Quando eu tento acessar a página de checkout diretamente
+    Então eu não devo ver um resumo de pedido válido
+    E devo ser impedido de prosseguir para o pagamento
 ```
 
 ---
@@ -293,9 +200,9 @@ Funcionalidade: Validação do carrinho de compras e checkout (tela de pagamento
 
 | Área | Fluxo Principal (Happy Path) | Exceções / Casos de Borda |
 |---|---|---|
-| Busca de Produtos | Produto existente, correspondência parcial, sem diferenciação de maiúsculas/minúsculas, filtros, relevância/precisão dos resultados | Busca vazia, apenas espaços em branco, termo inexistente, caracteres especiais, termo de um único caractere, **defeitos de relevância** (`"phone"` → fones de ouvido, `"top"` → laptops) |
-| Inclusão no Carrinho (inclui ícone/toggle) | Quantidade padrão, quantidade customizada, seleção de cor, inclusão repetida, indicador do ícone, resumo no toggle, navegação toggle→checkout, navegação ícone→página completa do carrinho | Quantidade = 0, quantidade negativa, quantidade não numérica, decremento abaixo de 1, cor não selecionada, indicador removido após esvaziar o carrinho, mensagem de vazio ao clicar no ícone |
-| Validação do Carrinho / Checkout | Nome/cor/quantidade/preço corretos, edição, remoção, resumo do pedido, opções de pagamento | Carrinho esvaziado, login exigido quando deslogado, botão LOGIN desabilitado, credenciais inválidas, checkout com carrinho vazio |
+| Busca de Produtos | Produto existente, correspondência parcial, sem diferenciação de maiúsculas/minúsculas, filtros por categoria e preço | Busca vazia / somente espaços, termo inexistente, entradas maliciosas, termo muito curto |
+| Inclusão no Carrinho | Escolha de cor e quantidade refletidas no pedido, inclusão repetida acumula, indicador do cabeçalho atualizado, acesso à página completa do carrinho | Quantidade inválida (zero, negativa, não numérica), carrinho vazio após remoção |
+| Validação do Carrinho / Checkout | Pedido exibido com precisão, edição de itens, remoção atualiza total, checkout logado, múltiplos itens | Carrinho esvaziado, login inválido preserva carrinho, checkout sem login, checkout com carrinho vazio |
 
 > Observações:
 > - Endpoint de busca: `#/search/?viewAll=<termo>`. Uma busca vazia retorna **todos os itens do catálogo** (394 itens observados) em vez de um erro ou estado vazio.
